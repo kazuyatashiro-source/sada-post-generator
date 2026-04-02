@@ -70,6 +70,7 @@ body { font-family: 'Inter', 'Noto Sans JP', sans-serif; background: var(--bg); 
 
 .main { max-width: 860px; margin: 0 auto; padding: 32px 24px 80px; }
 
+/* API Key Modal */
 .modal-overlay {
   display: none;
   position: fixed;
@@ -90,7 +91,8 @@ body { font-family: 'Inter', 'Noto Sans JP', sans-serif; background: var(--bg); 
   box-shadow: var(--shadow-lg);
 }
 .modal h2 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
-.modal p { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.6; }.input-group { margin-bottom: 20px; }
+.modal p { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.6; }
+.input-group { margin-bottom: 20px; }
 .input-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
 .input-group input {
   width: 100%;
@@ -119,6 +121,7 @@ body { font-family: 'Inter', 'Noto Sans JP', sans-serif; background: var(--bg); 
 .btn-modal-secondary { background: var(--bg); color: var(--text-secondary); border: 1px solid var(--border); }
 .btn-modal-secondary:hover { background: var(--border-light); }
 
+/* Model Select */
 .select-group { margin-bottom: 20px; }
 .select-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
 .select-group select {
@@ -135,6 +138,7 @@ body { font-family: 'Inter', 'Noto Sans JP', sans-serif; background: var(--bg); 
 }
 .select-group select:focus { border-color: var(--accent); }
 
+/* Controls */
 .control-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -198,6 +202,8 @@ body { font-family: 'Inter', 'Noto Sans JP', sans-serif; background: var(--bg); 
   transition: all 0.2s;
 }
 .btn-copy-all:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Posts */
 .posts-grid { display: flex; flex-direction: column; gap: 16px; }
 
 .post-card {
@@ -263,6 +269,7 @@ body { font-family: 'Inter', 'Noto Sans JP', sans-serif; background: var(--bg); 
 .btn-copy.copied { border-color: var(--success); color: var(--success); background: var(--success-light); }
 .btn-copy svg { width: 14px; height: 14px; }
 
+/* Loading */
 .loading-state {
   text-align: center;
   padding: 60px 24px;
@@ -279,6 +286,7 @@ body { font-family: 'Inter', 'Noto Sans JP', sans-serif; background: var(--bg); 
 .loading-state p { color: var(--text-secondary); font-size: 14px; }
 .loading-state .sub-text { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
 
+/* Error */
 .error-state {
   text-align: center;
   padding: 40px 24px;
@@ -288,6 +296,7 @@ body { font-family: 'Inter', 'Noto Sans JP', sans-serif; background: var(--bg); 
 }
 .error-state p { color: var(--danger); font-size: 14px; }
 
+/* Empty */
 .empty-state {
   text-align: center;
   padding: 80px 24px;
@@ -297,6 +306,7 @@ body { font-family: 'Inter', 'Noto Sans JP', sans-serif; background: var(--bg); 
 .empty-state p { font-size: 15px; margin-bottom: 8px; }
 .empty-state .hint { font-size: 13px; }
 
+/* Toast */
 .toast {
   position: fixed;
   bottom: 32px;
@@ -358,7 +368,8 @@ body { font-family: 'Inter', 'Noto Sans JP', sans-serif; background: var(--bg); 
       <button class="chip" data-theme="挑戦" onclick="setTheme(this)">挑戦</button>
       <button class="chip" data-theme="組織" onclick="setTheme(this)">組織</button>
       <button class="chip" data-theme="日常" onclick="setTheme(this)">日常</button>
-    </div>    <div style="border-top:1px solid var(--border-light); margin-top:8px; padding-top:16px;">
+    </div>
+    <div style="border-top:1px solid var(--border-light); margin-top:8px; padding-top:16px;">
       <div class="action-row">
         <div style="display:flex;gap:8px;margin-left:auto;">
           <button class="btn-copy-all" onclick="copyAll()">全てコピー</button>
@@ -384,7 +395,7 @@ body { font-family: 'Inter', 'Noto Sans JP', sans-serif; background: var(--bg); 
 <div class="toast" id="toast"></div>
 
 <script>
-let apiKey = 'AIzaSyDdYWc1uuyNaWCnYZeHDXg6GkRUVc3MKHU';
+let apiKey = 'AIzaSyDZ7bdWq4Rv1pbiBlB4rh-iLDzn3YRjOOA';
 let selectedModel = 'gemini-2.0-flash';
 let currentFilter = 'all';
 let currentTheme = 'all';
@@ -420,6 +431,7 @@ const SYSTEM_PROMPT = `あなたは @sandarsn（佐田展隆／オーダース�
 - 問いかけ型：読者に考えさせる問いで始める
 
 必ずJSON配列で返してください。各要素は {"text": "投稿本文", "theme": "テーマ", "type": "投稿タイプ"} の形式です。`;
+
 function getLengthSpec() {
   if (currentFilter === 'short') return '短文（100字以内、3〜4行）';
   if (currentFilter === 'mid') return '中文（100〜160字、5〜6行）';
@@ -433,7 +445,14 @@ function getThemeSpec() {
 }
 
 function buildUserPrompt() {
-  return `以下の条件で、@sandarsn風のX投稿を5件生成してください。\n\n【長さ指定】${getLengthSpec()}\n【テーマ指定】${getThemeSpec()}\n\n過去の高エンゲージメント投稿と同等のクオリティで、毎回異なる内容を生成すること。\n具体的な数字やエピソードを必ず含め、AIが書いた感じを完全に消すこと。\nJSON配列のみを返し、それ以外のテキストは含めないでください。`;
+  return `以下の条件で、@sandarsn風のX投稿を5件生成してください。
+
+【長さ指定】${getLengthSpec()}
+【テーマ指定】${getThemeSpec()}
+
+過去の高エンゲージメント投稿と同等のクオリティで、毎回異なる内容を生成すること。
+具体的な数字やエピソードを必ず含め、AIが書いた感じを完全に消すこと。
+JSON配列のみを返し、それ以外のテキストは含めないでください。`;
 }
 
 async function callGemini(userPrompt) {
@@ -470,6 +489,7 @@ async function callGemini(userPrompt) {
 
   return JSON.parse(jsonStr);
 }
+
 async function generate() {
   if (isGenerating) return;
   if (!apiKey) { return; }
@@ -507,6 +527,7 @@ async function generate() {
 function getLength(t) { const l = t.replace(/\n/g,'').length; return l <= 100 ? 'short' : l <= 160 ? 'mid' : 'long'; }
 function getLenLabel(t) { return {short:'短文',mid:'中文',long:'長文'}[t]; }
 function getLenClass(t) { return {short:'tag-short',mid:'tag-mid',long:'tag-long'}[t]; }
+
 function render() {
   const c = document.getElementById('posts');
   if (!displayedPosts.length) {
