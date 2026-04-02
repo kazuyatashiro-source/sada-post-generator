@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SADA Post Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --border: #e5e7eb;
+  --border-light: #f3f4f6;
+  --text: #111827;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --accent: #1e3a5f;
+  --accent-light: #e8eef6;
+  --accent-hover: #16304f;
+  --gold: #b8860b;
+  --gold-light: #fdf6e3;
+  --success: #059669;
+  --success-light: #ecfdf5;
+  --danger: #dc2626;
+  --danger-light: #fef2f2;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+.header {
+  background: var(--accent);
+  color: #fff;
+  padding: 0 40px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+.header-brand { display: flex; align-items: center; gap: 14px; }
+.logo { width: 36px; height: 36px; background: rgba(255,255,255,0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; letter-spacing: 0.5px; }
+.header h1 { font-size: 16px; font-weight: 600; letter-spacing: 0.3px; }
+.header .sub { font-size: 12px; opacity: 0.7; font-weight: 400; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.btn-settings {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: center; gap: 6px;
+}
+.btn-settings:hover { background: rgba(255,255,255,0.2); }
+.api-status { font-size: 11px; opacity: 0.7; }
+.api-status.connected { color: #6ee7b7; opacity: 1; }
+
+.main { max-width: 860px; margin: 0 auto; padding: 32px 24px 80px; }
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 32px;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: var(--shadow-lg);
+}
+.modal h2 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.modal p { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.6; }.input-group { margin-bottom: 20px; }
+.input-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+.input-group input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: 'Inter', monospace;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.input-group input:focus { border-color: var(--accent); }
+.input-group .hint { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.btn-modal {
+  padding: 10px 24px;
+  border-radius: 22px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+.btn-modal-primary { background: var(--accent); color: #fff; }
+.btn-modal-primary:hover { background: var(--accent-hover); }
+.btn-modal-secondary { background: var(--bg); color: var(--text-secondary); border: 1px solid var(--border); }
+.btn-modal-secondary:hover { background: var(--border-light); }
+
+.select-group { margin-bottom: 20px; }
+.select-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+.select-group select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: 'Inter', 'Noto Sans JP', sans-serif;
+  outline: none;
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.select-group select:focus { border-color: var(--accent); }
+
+.control-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+}
+.control-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.control-row:last-child { margin-bottom: 0; }
+.control-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.8px; min-width: 50px; }
+
+.chip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--surface);
+  user-select: none;
+}
+.chip:hover { border-color: var(--accent); color: var(--accent); }
+.chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.btn-generate {
+  height: 44px;
+  padding: 0 28px;
+  border-radius: 22px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-generate:hover { background: var(--accent-hover); box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.btn-generate:active { transform: translateY(0); }
+.btn-generate:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.btn-generate svg { width: 16px; height: 16px; }
+
+.action-row { display: flex; align-items: center; gap: 12px; justify-content: space-between; }
+
+.btn-copy-all {
+  padding: 8px 18px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-copy-all:hover { border-color: var(--accent); color: var(--accent); }
+.posts-grid { display: flex; flex-direction: column; gap: 16px; }
+
+.post-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s, transform 0.15s;
+}
+.post-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+
+.post-card-header {
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg);
+}
+.post-card-header-left { display: flex; align-items: center; gap: 10px; }
+.post-num { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.post-tags { display: flex; gap: 6px; align-items: center; }
+.tag { padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px; }
+.tag-short { background: #dbeafe; color: #1e40af; }
+.tag-mid { background: #fef3c7; color: #92400e; }
+.tag-long { background: #d1fae5; color: #065f46; }
+.tag-theme { background: var(--accent-light); color: var(--accent); }
+
+.post-body {
+  padding: 20px 24px;
+  font-size: 15px;
+  line-height: 1.85;
+  white-space: pre-line;
+  color: var(--text);
+  letter-spacing: 0.2px;
+}
+
+.post-card-footer {
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--border-light);
+  background: var(--bg);
+}
+.char-info { font-size: 12px; color: var(--text-muted); }
+.btn-copy {
+  padding: 5px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn-copy:hover { border-color: var(--accent); color: var(--accent); }
+.btn-copy.copied { border-color: var(--success); color: var(--success); background: var(--success-light); }
+.btn-copy svg { width: 14px; height: 14px; }
+
+.loading-state {
+  text-align: center;
+  padding: 60px 24px;
+}
+.spinner {
+  width: 40px; height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-state p { color: var(--text-secondary); font-size: 14px; }
+.loading-state .sub-text { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
+
+.error-state {
+  text-align: center;
+  padding: 40px 24px;
+  background: var(--danger-light);
+  border-radius: var(--radius);
+  border: 1px solid #fecaca;
+}
+.error-state p { color: var(--danger); font-size: 14px; }
+
+.empty-state {
+  text-align: center;
+  padding: 80px 24px;
+  color: var(--text-muted);
+}
+.empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+.empty-state p { font-size: 15px; margin-bottom: 8px; }
+.empty-state .hint { font-size: 13px; }
+
+.toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--accent);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  pointer-events: none;
+  box-shadow: var(--shadow-lg);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 640px) {
+  .header { padding: 0 16px; }
+  .main { padding: 16px 12px 60px; }
+  .control-card { padding: 16px; }
+  .action-row { flex-direction: column; align-items: stretch; gap: 12px; }
+  .btn-generate { width: 100%; justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-brand">
+    <div class="logo">SADA</div>
+    <div>
+      <h1>Post Generator</h1>
+      <div class="sub">@sandarsn AI自動生成ツール（Gemini）</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="api-status connected" id="api-status">Gemini 2.0 Flash 接続済</span>
+  </div>
+</div>
+
+
+<div class="main">
+
+  <div class="control-card">
+    <div class="control-row">
+      <span class="control-label">長さ</span>
+      <button class="chip active" data-filter="all" onclick="setFilter(this)">すべて</button>
+      <button class="chip" data-filter="short" onclick="setFilter(this)">短文（〜100字）</button>
+      <button class="chip" data-filter="mid" onclick="setFilter(this)">中文（100〜160字）</button>
+      <button class="chip" data-filter="long" onclick="setFilter(this)">長文（160字〜）</button>
+    </div>
+    <div class="control-row">
+      <span class="control-label">テーマ</span>
+      <button class="chip active" data-theme="all" onclick="setTheme(this)">すべて</button>
+      <button class="chip" data-theme="経営" onclick="setTheme(this)">経営</button>
+      <button class="chip" data-theme="スーツ" onclick="setTheme(this)">スーツ</button>
+      <button class="chip" data-theme="挑戦" onclick="setTheme(this)">挑戦</button>
+      <button class="chip" data-theme="組織" onclick="setTheme(this)">組織</button>
+      <button class="chip" data-theme="日常" onclick="setTheme(this)">日常</button>
+    </div>    <div style="border-top:1px solid var(--border-light); margin-top:8px; padding-top:16px;">
+      <div class="action-row">
+        <div style="display:flex;gap:8px;margin-left:auto;">
+          <button class="btn-copy-all" onclick="copyAll()">全てコピー</button>
+          <button class="btn-generate" id="btn-gen" onclick="generate()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+            AIで5件生成
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="posts-grid" id="posts">
+    <div class="empty-state">
+      <div class="empty-icon">✦</div>
+      <p>「AIで5件生成」ボタンを押してください</p>
+      <p class="hint">フィルターで長さやテーマを絞り込めます</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let apiKey = 'AIzaSyBShKpdLq5QJuIvXZQNz3RRMxC_8jW_xiI';
+let selectedModel = 'gemini-2.0-flash';
+let currentFilter = 'all';
+let currentTheme = 'all';
+let displayedPosts = [];
+let isGenerating = false;
+
+const SYSTEM_PROMPT = `あなたは @sandarsn（佐田展隆／オーダースーツSADA 4代目社長）のX投稿を代筆するゴーストライターです。
+
+【人物プロフィール】
+- オーダースーツSADA 4代目社長。借金25億円の会社を引き継ぎ、売上17億→42億に再建
+- 卸売→小売への業態転換、全国46店舗展開、自社工場での一貫生産
+- オーダースーツ19,800円〜の低価格を実現
+- 日本百名山の77座をスーツで登頂、スキージャンプ・マラソンもスーツで実施
+- 55歳までにエベレスト登頂が目標。自宅に低酸素室、体脂肪率10.5%
+- カンブリア宮殿出演、Yahoo!ニュース多数掲載
+- 2011年からX運用、投稿1.1万件超
+
+【文体ルール（厳守）】
+1. 1行＝1文。絶対に1行に2文入れない
+2. 空行は使わない（改行のみ）
+3. 「〜だと思っている」は1投稿に最大1回まで。基本は断言・体言止め
+4. 語尾が「〜だ。」「〜ない。」「〜する。」で終わる断言を多用
+5. 教訓めいた結びは避ける。余韻を残す終わり方（体言止め、短文断言）
+6. 冒頭は具体的な場面・数字で引き込む（「借金25億」「売上17億」「標高6,500m」等）
+7. AIっぽい表現を絶対に使わない：「〜ではないでしょうか」「〜かもしれません」「大切にしたい」「心がけている」は禁止
+8. 280字以内
+9. 登山の写真・登山自慢には触れない（テキストとしての挑戦エピソードはOK）
+
+【投稿タイプ】
+- 断言型：結論を先に置き、根拠を後から積む
+- ストーリー型：具体的な場面から入り、最後に余韻
+- 対比型：常識と自分のやり方を対比させる
+- 問いかけ型：読者に考えさせる問いで始める
+
+必ずJSON配列で返してください。各要素は {"text": "投稿本文", "theme": "テーマ", "type": "投稿タイプ"} の形式です。`;
+function getLengthSpec() {
+  if (currentFilter === 'short') return '短文（100字以内、3〜4行）';
+  if (currentFilter === 'mid') return '中文（100〜160字、5〜6行）';
+  if (currentFilter === 'long') return '長文（160〜260字、7〜10行）';
+  return 'ランダムに短文・中文・長文を混ぜる（短文: 〜100字、中文: 100〜160字、長文: 160〜260字）';
+}
+
+function getThemeSpec() {
+  if (currentTheme === 'all') return '経営・スーツ・挑戦・組織・日常の中からバランスよく選ぶ';
+  return `「${currentTheme}」テーマに絞る`;
+}
+
+function buildUserPrompt() {
+  return `以下の条件で、@sandarsn風のX投稿を5件生成してください。\n\n【長さ指定】${getLengthSpec()}\n【テーマ指定】${getThemeSpec()}\n\n過去の高エンゲージメント投稿と同等のクオリティで、毎回異なる内容を生成すること。\n具体的な数字やエピソードを必ず含め、AIが書いた感じを完全に消すこと。\nJSON配列のみを返し、それ以外のテキストは含めないでください。`;
+}
+
+async function callGemini(userPrompt) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{
+        parts: [{ text: SYSTEM_PROMPT + '\n\n' + userPrompt }]
+      }],
+      generationConfig: {
+        temperature: 0.9,
+        maxOutputTokens: 3000
+      }
+    })
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const msg = err.error?.message || `API Error: ${res.status}`;
+    if (res.status === 400) throw new Error('リクエストエラー: ' + msg);
+    if (res.status === 403) throw new Error('APIキーが無効、またはGemini APIが有効化されていません。');
+    if (res.status === 429) throw new Error('レート制限に達しました。少し待ってから再試行してください。');
+    throw new Error(msg);
+  }
+
+  const data = await res.json();
+  const content = data.candidates[0].content.parts[0].text.trim();
+
+  let jsonStr = content;
+  const match = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (match) jsonStr = match[1].trim();
+
+  return JSON.parse(jsonStr);
+}
+async function generate() {
+  if (isGenerating) return;
+  if (!apiKey) { return; }
+
+  isGenerating = true;
+  const btn = document.getElementById('btn-gen');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;margin:0;"></div>生成中...';
+
+  const container = document.getElementById('posts');
+  container.innerHTML = '<div class="loading-state"><div class="spinner"></div><p>AIが投稿を生成中...</p><p class="sub-text">10〜20秒ほどお待ちください</p></div>';
+
+  try {
+    const posts = await callGemini(buildUserPrompt());
+    displayedPosts = posts.map(p => ({
+      text: p.text,
+      theme: p.theme || '経営',
+      type: p.type || '断言型'
+    }));
+    render();
+  } catch (e) {
+    let hint = '';
+    if (e.message === 'Failed to fetch') {
+      hint = '<br><br>考えられる原因:<br>・インターネット接続を確認<br>・APIキーの残高不足（platform.openai.com/usage で確認）<br>・ブラウザがリクエストをブロックしている場合はChromeで開き直してください';
+    }
+    container.innerHTML = `<div class="error-state"><p>エラー: ${e.message}${hint}</p></div>`;
+    console.error(e);
+  }
+
+  isGenerating = false;
+  btn.disabled = false;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>AIで5件生成';
+}
+
+function getLength(t) { const l = t.replace(/\n/g,'').length; return l <= 100 ? 'short' : l <= 160 ? 'mid' : 'long'; }
+function getLenLabel(t) { return {short:'短文',mid:'中文',long:'長文'}[t]; }
+function getLenClass(t) { return {short:'tag-short',mid:'tag-mid',long:'tag-long'}[t]; }
+function render() {
+  const c = document.getElementById('posts');
+  if (!displayedPosts.length) {
+    c.innerHTML = '<div class="empty-state"><div class="empty-icon">✦</div><p>「AIで5件生成」ボタンを押してください</p><p class="hint">APIが接続されていない場合は右上の「API設定」から設定してください</p></div>';
+    return;
+  }
+  c.innerHTML = displayedPosts.map((p, i) => {
+    const len = getLength(p.text);
+    const cc = p.text.replace(/\n/g,'').length;
+    const lc = p.text.split('\n').length;
+    return `<div class="post-card">
+      <div class="post-card-header">
+        <div class="post-card-header-left">
+          <div class="post-num">${i+1}</div>
+          <div class="post-tags">
+            <span class="tag ${getLenClass(len)}">${getLenLabel(len)}</span>
+            <span class="tag tag-theme">${p.theme}</span>
+          </div>
+        </div>
+      </div>
+      <div class="post-body">${escapeHtml(p.text)}</div>
+      <div class="post-card-footer">
+        <span class="char-info">${cc}字 ／ ${lc}行</span>
+        <button class="btn-copy" onclick="copyOne(${i},this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>コピー</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function copyOne(i, btn) {
+  navigator.clipboard.writeText(displayedPosts[i].text);
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>コピー済';
+  btn.classList.add('copied');
+  setTimeout(() => {
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>コピー';
+    btn.classList.remove('copied');
+  }, 1500);
+}
+
+function copyAll() {
+  if (!displayedPosts.length) return;
+  const t = displayedPosts.map((p, i) => `【${i+1}】\n${p.text}`).join('\n\n---\n\n');
+  navigator.clipboard.writeText(t);
+  showToast('5件の投稿をコピーしました');
+}
+
+function showToast(m) {
+  const t = document.getElementById('toast');
+  t.textContent = m;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function setFilter(el) {
+  document.querySelectorAll('[data-filter]').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  currentFilter = el.dataset.filter;
+}
+
+function setTheme(el) {
+  document.querySelectorAll('[data-theme]').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  currentTheme = el.dataset.theme;
+}
+
+</script>
+</body>
+</html>
